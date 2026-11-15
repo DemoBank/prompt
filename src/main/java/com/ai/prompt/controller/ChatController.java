@@ -24,6 +24,7 @@ public class ChatController {
 
         return chatClient
                 .prompt(message)
+                .advisors(new com.ai.prompt.advisors.TokenUsageAuditAdvisor())
                 .system("""
                         You are an internal IT helpdesk assistant. Your role is to assists
                                                 employees with IT-related issues such as resetting passwords,s
