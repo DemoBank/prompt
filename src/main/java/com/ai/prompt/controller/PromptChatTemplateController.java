@@ -2,6 +2,8 @@ package com.ai.prompt.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,13 +16,9 @@ public class PromptChatTemplateController {
     @Autowired
     private ChatClient chatClient;
 
-    String promptTemplate = """
-            A customer name {customerName} has sent the following message: "{customerMessage}".
-            Write a polite and helpful email response to address the customer's concerns and provide assistance. 
-            Ensure that the response is professional, empathetic, and offers a solution or next steps.
-            Respond as if you are writing the email body only. don't include subject and signature. 
-            Keep the response concise and clear, and avoid using any technical jargon.
-            """;
+    @Value("classpath:PromptTemplates/UserPromptTemplate.st")
+    Resource promptTemplate;
+
 
     @GetMapping("/email")
     public String emailResponse(@RequestParam("customerName") String customerName, @RequestParam("customerMessage") String customerMessage) {
