@@ -8,6 +8,9 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,21 +20,31 @@ import java.util.List;
 @Configuration
 public class ChatMemoryChatClient {
 
-
     @Bean
     ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
         return MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(chatMemoryRepository).build();
     }
 
 @Bean("chatMemoryClient")
-    public ChatClient chatClient(ChatClient.Builder chatClient, ChatMemory chatMemory) {
+    public ChatClient chatClient(ChatClient.Builder chatClient, ChatMemory chatMemory, RetrievalAugmentationAdvisor retrievalAugmentationAdvisor) {
     Advisor loggerAdvisor = new SimpleLoggerAdvisor();
     Advisor tokenUsageAdvisor = new TokenUsageAuditAdvisor();
 
     Advisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 
         return chatClient
-                .defaultAdvisors(List.of(loggerAdvisor, messageChatMemoryAdvisor, tokenUsageAdvisor))
+                .defaultAdvisors(List.of(loggerAdvisor, messageChatMemoryAdvisor, tokenUsageAdvisor, retrievalAugmentationAdvisor ))
                 .build();
+    }
+
+    @Bean
+    RetrievalAugmentationAdvisor retrievalAugmentationAdvisor(VectorStore vectorStore) {
+        return RetrievalAugmentationAdvisor.builder().documentRetriever(
+                VectorStoreDocumentRetriever.builder().vectorStore(vectorStore)
+                        .topK(3)
+                        .similarityThreshold(0.6)
+                        .build()
+
+        ).build();
     }
 }
