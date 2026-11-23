@@ -2,6 +2,7 @@ package com.ai.prompt.config;
 
 import com.ai.prompt.advisors.TokenUsageAuditAdvisor;
 import com.ai.prompt.rag.PIIMaskingDocumentPostProsessor;
+import org.springframework.ai.chat.cache.semantic.SemanticCacheAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -28,14 +29,14 @@ public class ChatMemoryChatClient {
     }
 
 @Bean("chatMemoryClient")
-    public ChatClient chatClient(ChatClient.Builder chatClient, ChatMemory chatMemory, RetrievalAugmentationAdvisor retrievalAugmentationAdvisor) {
+    public ChatClient chatClient(ChatClient.Builder chatClient, ChatMemory chatMemory, RetrievalAugmentationAdvisor retrievalAugmentationAdvisor, SemanticCacheAdvisor semanticCacheAdvisor) {
     Advisor loggerAdvisor = new SimpleLoggerAdvisor();
     Advisor tokenUsageAdvisor = new TokenUsageAuditAdvisor();
 
     Advisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 
         return chatClient
-                .defaultAdvisors(List.of(loggerAdvisor, messageChatMemoryAdvisor, tokenUsageAdvisor, retrievalAugmentationAdvisor ))
+                .defaultAdvisors(List.of(loggerAdvisor, messageChatMemoryAdvisor, tokenUsageAdvisor, retrievalAugmentationAdvisor,semanticCacheAdvisor))
                 .build();
     }
 
