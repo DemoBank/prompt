@@ -1,6 +1,7 @@
 package com.ai.prompt.config;
 
 import com.ai.prompt.advisors.TokenUsageAuditAdvisor;
+import com.ai.prompt.rag.PIIMaskingDocumentPostProsessor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -48,6 +49,8 @@ public class ChatMemoryChatClient {
                         .similarityThreshold(0.6)
                         .build()
 
-        ).build();
+        )
+                .documentPostProcessors(PIIMaskingDocumentPostProsessor.builder())
+                .build();
     }
 }
