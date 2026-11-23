@@ -22,6 +22,10 @@ public class RagController {
     @Value("classpath:/promptTemplates/SystemPromptRandomDataTemplate.st")
     Resource promptTemplate;
 
+    @Value("classpath:/promptTemplates/SystemPromptTemplate.st")
+    Resource hrPromptTemplate;
+
+
     public RagController(@Qualifier("chatMemoryClient") ChatClient chatClient, VectorStore vectorStore) {
         this.chatClient = chatClient;
         this.vectorStore = vectorStore;
@@ -43,5 +47,23 @@ public class RagController {
                 .user(message)
                .call().content();
        return org.springframework.http.ResponseEntity.ok(answer);
+    }
+
+    @GetMapping("document/chat")
+    public org.springframework.http.ResponseEntity<String> documentChat(@RequestHeader("username") String username, @RequestParam("message") String message) {
+        SearchRequest searchRequest=  SearchRequest.builder()
+                .query(message)
+                .topK(3)
+                .similarityThreshold(0.6)
+                .build();
+
+        List<Document> similarDocument =  vectorStore.similaritySearch(searchRequest);
+        String similarContext = similarDocument.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
+        String answer = chatClient.prompt().system(promptSystemSpec -> promptSystemSpec.text(hrPromptTemplate)
+                        .param("documents", similarContext))
+                .advisors(advisorSpec -> advisorSpec.param(MemoryAdvisor.CONVERSATION_ID, username))
+                .user(message)
+                .call().content();
+        return org.springframework.http.ResponseEntity.ok(answer);
     }
 }
